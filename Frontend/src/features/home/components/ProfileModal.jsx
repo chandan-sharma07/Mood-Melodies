@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../styles/home.scss';
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const ProfileModal = ({ isOpen, onClose, user, onLogout }) => {
     const [activeTab, setActiveTab] = useState('profile');
@@ -8,7 +10,7 @@ const ProfileModal = ({ isOpen, onClose, user, onLogout }) => {
 
     useEffect(() => {
         if (activeTab === 'artists') {
-            axios.get('http://localhost:3000/api/auth/recommended-artists', { withCredentials: true })
+            axios.get(`${API_BASE}/api/auth/recommended-artists`, { withCredentials: true })
                 .then(res => setArtists(res.data.artists))
                 .catch(err => console.error(err));
         }

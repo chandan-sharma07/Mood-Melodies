@@ -1,5 +1,7 @@
-import { useState, useEffect, createContext, useRef } from "react";
+import { useState, useEffect, createContext } from "react";
 import axios from "axios";
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export const SongContext = createContext();
 
@@ -28,7 +30,7 @@ export const SongContextProvider = ({ children }) => {
 
             try {
                 const response = await axios.get(
-                    `http://localhost:3000/api/songs/stream?mood=${currentMood}`,
+                    `${API_BASE}/api/songs/stream?mood=${currentMood}`,
                     { withCredentials: true }
                 );
                 setSongs(response.data);
@@ -57,7 +59,7 @@ export const SongContextProvider = ({ children }) => {
             if (prev[prev.length - 1]?.mood === currentMood) return prev;
 
             // Call backend to persist mood
-            axios.post('http://localhost:3000/api/auth/log-mood', { mood: currentMood }, { withCredentials: true })
+            axios.post(`${API_BASE}/api/auth/log-mood`, { mood: currentMood }, { withCredentials: true })
                 .catch(err => console.error("Error logging mood:", err));
 
             const newHistory = [...prev, { mood: currentMood, time: new Date() }];
@@ -74,7 +76,7 @@ export const SongContextProvider = ({ children }) => {
                 if (isSameAsLast) return prev;
 
                 // Call backend to increment song count
-                axios.post('http://localhost:3000/api/auth/log-song', { songId: currentSong._id }, { withCredentials: true })
+                axios.post(`${API_BASE}/api/auth/log-song`, { songId: currentSong._id }, { withCredentials: true })
                     .catch(err => console.error("Error logging song:", err));
 
                 return [{ song: currentSong, time: new Date() }, ...prev].slice(0, 5); // Keep last 5 songs

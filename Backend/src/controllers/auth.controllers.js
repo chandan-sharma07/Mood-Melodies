@@ -5,10 +5,10 @@ const blacklistModel = require("../models/blacklist.model");
 const redisClient = require("../config/cache");
 
 const cookieOptions = {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 3 * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  maxAge: 3 * 24 * 60 * 60 * 1000,
 };
 
 const sanitizeUser = (user) => {
