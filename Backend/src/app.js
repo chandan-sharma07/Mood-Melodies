@@ -8,10 +8,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: [
-        "http://localhost:5173",
-        "https://mood-melodies-one.vercel.app"
-    ],
+    origin: process.env.CLIENT_URL,
     credentials: true,
 }));
 
