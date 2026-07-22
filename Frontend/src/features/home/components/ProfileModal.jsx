@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../styles/home.scss';
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_BASE = import.meta.env.VITE_API_URL || "https://mood-melodies-backend.onrender.com";
 
 const ProfileModal = ({ isOpen, onClose, user, onLogout }) => {
     const [activeTab, setActiveTab] = useState('profile');
