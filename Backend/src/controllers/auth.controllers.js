@@ -37,6 +37,7 @@ const registerUser = async (req, res) => {
         res.cookie("token", token, cookieOptions);
         res.status(200).json({ message: "User registered successfully", user: sanitizeUser(user) });
     } catch (error) {
+        console.log("Register body:", req.body);
         console.error(error);
         if (error.code === 11000) {
             return res.status(400).json({ message: "User already exists" });
@@ -67,8 +68,11 @@ const loginUser = async (req, res) => {
         res.cookie("token", token, cookieOptions);
         res.status(200).json({ message: "User logged in successfully", user: sanitizeUser(user) });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error logging in user" });
+        console.error("Login Error:", error);
+        return res.status(500).json({
+            message: error.message,
+            stack: error.stack
+        });
     }
 };
 
