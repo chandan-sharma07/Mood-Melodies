@@ -1,30 +1,30 @@
 import axios from "axios";
 
 const api = axios.create({
-baseURL: "http://localhost:3000/api/auth",
-withCredentials: true,
+  baseURL: import.meta.env.VITE_API_URL + "/api/auth",
+  withCredentials: true,
 });
 
 export const register = async (userData) => {
-    const { data } = await api.post("/register", userData);
-    return data;
+  const { data } = await api.post("/register", userData);
+  return data;
 };
 
 export const login = async (email, password) => {
-const { data } = await api.post("/login", {
+  const { data } = await api.post("/login", {
     email,
     password,
-});
+  });
 
-return data;
+  return data;
 };
 
 export const getMe = async () => {
-const { data } = await api.get("/get-me");
-return data;
+  const { data } = await api.get("/get-me");
+  return data;
 };
 
 export const logout = async () => {
-const { data } = await api.post("/logout");
-return data;
+  const { data } = await api.post("/logout");
+  return data;
 };
