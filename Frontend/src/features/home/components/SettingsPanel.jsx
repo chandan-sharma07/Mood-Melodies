@@ -2,54 +2,75 @@ import React, { useContext } from 'react';
 import { SongContext } from '../song.context';
 
 const SettingsPanel = () => {
-    const { autoplayEnabled, setAutoplayEnabled, sensitivity, setSensitivity } = useContext(SongContext);
+    const {
+        autoplayEnabled, setAutoplayEnabled,
+        sensitivity, setSensitivity,
+        currentMood, setCurrentMood,
+    } = useContext(SongContext);
+
+    const moods = ['happy', 'sad', 'energetic', 'chill', 'romantic', 'angry', 'relaxing', 'dreamy'];
 
     return (
-        <div className="card settings-card">
-            <div className="card-header">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                <h3>Settings</h3>
+        <div className="dash-panel settings-panel">
+            <div className="panel-header"><h3>Settings</h3></div>
+
+            {/* Autoplay toggle */}
+            <div className="settings-row">
+                <div>
+                    <div className="settings-label">Autoplay</div>
+                    <div className="settings-sub">Play next track automatically</div>
+                </div>
+                <label className="toggle">
+                    <input
+                        type="checkbox"
+                        checked={autoplayEnabled}
+                        onChange={() => setAutoplayEnabled(p => !p)}
+                    />
+                    <span className="slider" />
+                </label>
             </div>
 
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-                <span style={{ color: '#e0e0e0' }}>Sensitivity</span>
-                <span style={{ fontWeight: '500' }}>{sensitivity}%</span>
-            </div>
-            <div style={{ marginBottom: '1.5rem', width: '100%', position: 'relative' }}>
+            {/* Sensitivity */}
+            <div className="settings-row">
+                <div>
+                    <div className="settings-label">Detection Sensitivity</div>
+                    <div className="settings-sub">{sensitivity}%</div>
+                </div>
                 <input
                     type="range"
+                    className="sens-slider"
                     min="10"
                     max="100"
                     value={sensitivity}
                     onChange={(e) => setSensitivity(Number(e.target.value))}
-                    style={{
-                        width: '100%',
-                        accentColor: '#90caf9',
-                        cursor: 'pointer'
-                    }}
                 />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', color: '#e0e0e0' }}>
-                <span>Auto-play on change</span>
-                <div
-                    onClick={() => setAutoplayEnabled(!autoplayEnabled)}
-                    style={{
-                        width: '40px', height: '20px',
-                        backgroundColor: autoplayEnabled ? '#ff65a3' : '#333',
-                        borderRadius: '10px', position: 'relative', cursor: 'pointer',
-                        transition: 'background-color 0.2s'
-                    }}>
-                    <div style={{
-                        width: '16px', height: '16px',
-                        backgroundColor: autoplayEnabled ? '#1a1a1d' : '#888',
-                        borderRadius: '50%', position: 'absolute',
-                        right: autoplayEnabled ? '2px' : 'auto',
-                        left: autoplayEnabled ? 'auto' : '2px',
-                        top: '2px',
-                        transition: 'all 0.2s'
-                    }}></div>
+            {/* Manual mood override */}
+            <div className="settings-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+                <div className="settings-label">Manual Mood Override</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {moods.map(m => (
+                        <button
+                            key={m}
+                            onClick={() => setCurrentMood(m)}
+                            style={{
+                                padding: '4px 12px',
+                                borderRadius: '9999px',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                border: '1px solid',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                textTransform: 'capitalize',
+                                background: currentMood === m ? 'rgba(255,101,163,0.2)' : 'transparent',
+                                borderColor: currentMood === m ? 'rgba(255,101,163,0.5)' : 'var(--outline-variant)',
+                                color: currentMood === m ? 'var(--primary)' : 'var(--on-surface-muted)',
+                            }}
+                        >
+                            {m}
+                        </button>
+                    ))}
                 </div>
             </div>
         </div>

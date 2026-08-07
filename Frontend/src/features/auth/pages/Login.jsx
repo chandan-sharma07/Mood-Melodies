@@ -1,61 +1,87 @@
-import React, { useState } from "react";
-import "../style/login.scss";
-import FormGroup from "../components/FormGroup";
+import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { login } from "../services/auth.api";
+import { AuthContext } from "../auth.context";
+import "../style/login.scss";
 
 const Login = () => {
-const { loading, submitting, login, error } = useAuth();
-const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-const [email, setEmail] = useState("");
-const [password, setPassword] = useState("");
-
-async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const success = await login(email, password);
-
-    if (success) {
-    navigate("/");
+    setError("");
+    setLoading(true);
+    try {
+      const data = await login(email, password);
+      setUser(data.user);
+      navigate("/");
+    } catch (err) {
+      setError(
+        err?.response?.data?.message || "Login failed. Please try again.",
+      );
+    } finally {
+      setLoading(false);
     }
-}
+  };
 
-return (
-    <main className="login-page">
-    <div className="form-container">
-        <h1>Login</h1>
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+        {/* Logo */}
+        <div className="auth-logo">
+          <span className="logo-icon">🎵</span>
+          <span className="logo-text">Mood Melodies</span>
+        </div>
 
-        {error && <p className="error-message">{error}</p>}
+        <h1 className="auth-heading">Welcome Back</h1>
+        <p className="auth-subheading">Sign in to continue your mood journey</p>
 
-        <form onSubmit={handleSubmit}>
-        <FormGroup
-            label="Email"
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-        />
+        {error && <div className="auth-error">{error}</div>}
 
-        <FormGroup
-            label="Password"
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-        />
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          </div>
 
-        <button className="button" type="submit" disabled={loading || submitting}>
-            {submitting ? "Logging in..." : "Login"}
-        </button>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </div>
+
+          <button type="submit" className="auth-btn" disabled={loading}>
+            {loading ? <span className="btn-spinner" /> : null}
+            {loading ? "Signing in…" : "Sign In"}
+          </button>
         </form>
 
-        <p>
-        Don't have an account? <Link to="/register">Register</Link>
+        <p className="auth-footer">
+          Don't have an account? <Link to="/register">Create one</Link>
         </p>
+      </div>
     </div>
-    </main>
-);
+  );
 };
 
 export default Login;

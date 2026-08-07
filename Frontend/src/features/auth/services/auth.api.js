@@ -1,22 +1,11 @@
 import axios from "axios";
 
-// const API_BASE = import.meta.env.VITE_API_URL || "https://mood-melodies-backend.onrender.com";
-
-/* const api = axios.create({
-  baseURL: API_BASE + "/api/auth",
-  withCredentials: true,
-}); */
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL}/api/auth`,
+  baseURL: `${API_BASE}/api/auth`,
   withCredentials: true,
 });
-
-/* export const register = async (userData) => {
-  const { data } = await api.post("/register", userData);
-  return data;
-}; */
-
 
 export const register = async (userData) => {
   const { data } = await api.post("/register", userData);

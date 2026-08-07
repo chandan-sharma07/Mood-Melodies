@@ -1,30 +1,39 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { SongContext } from '../song.context';
 
 const MoodHistory = () => {
-    const { moodHistory } = useContext(SongContext);
+    const { moodHistory, currentMood } = useContext(SongContext);
+
+    const moodEmoji = {
+        happy: '😄', sad: '😢', angry: '😡', energetic: '⚡',
+        chill: '😌', romantic: '❤️', relaxing: '🌊', joyful: '🎉',
+        melancholic: '🌧️', playful: '🎈', motivational: '💪', dreamy: '✨',
+        neutral: '😐', surprised: '😮', disgusted: '🤢', fearful: '😨',
+    };
 
     return (
-        <div className="card mood-history-card" style={{ display: 'flex', flexDirection: 'column' }}>
-            <div className="card-header">
-                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                <h3>Mood history</h3>
+        <div className="dash-panel mood-history">
+            <div className="panel-header">
+                <h3>Mood History</h3>
+                <span className="panel-badge" style={{ textTransform: 'capitalize' }}>
+                    {moodEmoji[currentMood] || '🎵'} {currentMood}
+                </span>
             </div>
 
-            <div style={{ flexGrow: 1, position: 'relative', marginTop: '1rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.5rem' }}>
+            <div className="mood-chips">
                 {moodHistory.length === 0 ? (
-                    <div style={{ color: '#707070', fontSize: '0.85rem' }}>No mood data yet</div>
+                    <div className="dash-empty">
+                        <span className="empty-icon">🌀</span>
+                        <span>No mood history yet</span>
+                    </div>
                 ) : (
-                    moodHistory.map((item, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff65a3', marginRight: '10px' }}></div>
-                                <span style={{ color: '#e0e0e0', textTransform: 'capitalize', fontSize: '0.9rem' }}>{item.mood}</span>
-                            </div>
-                            <span style={{ color: '#707070', fontSize: '0.8rem' }}>
-                                {item.time?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                            </span>
-                        </div>
+                    [...moodHistory].reverse().map((h, i) => (
+                        <span
+                            key={i}
+                            className={`mood-chip${h.mood === currentMood && i === 0 ? ' current' : ''}`}
+                        >
+                            {moodEmoji[h.mood] || '🎵'} {h.mood}
+                        </span>
                     ))
                 )}
             </div>

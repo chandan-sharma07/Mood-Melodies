@@ -1,19 +1,194 @@
-@use "./button.scss" as *;
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+// ─── Design Tokens (Stitch MoodMelodies) ───
+:root {
+  // Surfaces
+  --bg: #121414;
+  --bg-dim: #0c0f0f;
+  --surface: #1e2020;
+  --surface-high: #282a2b;
+  --surface-highest: #333535;
+
+  // Accents
+  --primary: #ff65a3;
+  --primary-dim: #c7c4d7;
+  --secondary: #ffb0c9;
+  --tertiary: #c7bfff;
+  --tertiary-vivid: #7c6aff;
+
+  // Text
+  --on-surface: #e2e2e2;
+  --on-surface-muted: rgba(226, 226, 226, 0.6);
+  --on-primary: #2f2f3d;
+  --outline: #929096;
+  --outline-variant: #47464c;
+
+  // Glass
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-hover: rgba(255, 255, 255, 0.22);
+  --glass-blur: blur(22px);
+
+  // Gradients
+  --grad-primary: linear-gradient(135deg, #ff65a3, #7c6aff);
+  --grad-subtle: linear-gradient(
+    135deg,
+    rgba(255, 101, 163, 0.15),
+    rgba(124, 106, 255, 0.15)
+  );
+
+  // Radius
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  // Shadows / Glows
+  --glow-primary: 0 0 24px rgba(255, 101, 163, 0.25);
+  --glow-tertiary: 0 0 24px rgba(124, 106, 255, 0.25);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-html, body, #root {
-    width: 100%;
-    background-color: rgb(33, 33, 33);
-    color: whitesmoke;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-
+// ─── Reset ───
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-a{
-    text-decoration: none;
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg);
+  color: var(--on-surface);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  background: none;
+}
+input,
+textarea {
+  font-family: inherit;
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+
+// ─── Utility Classes ───
+.grad-text {
+  background: var(--grad-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--shadow-card);
+  }
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  background: var(--grad-primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: pointer;
+  transition:
+    opacity 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+  box-shadow: var(--glow-primary);
+
+  &:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+    box-shadow: 0 0 36px rgba(255, 101, 163, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 24px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--on-surface);
+  font-weight: 500;
+  font-size: 15px;
+  border: 1px solid var(--glass-border-hover);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.15s;
+
+  &:hover {
+    background: var(--glass-bg);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+  }
+}
+
+// ─── Scrollbar ───
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
 }

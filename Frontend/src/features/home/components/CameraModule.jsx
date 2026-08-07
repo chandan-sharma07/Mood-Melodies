@@ -7,57 +7,64 @@ const CameraModule = () => {
     const { videoRef, expression } = useFaceExpression();
     const { setCurrentMood, currentMood } = useContext(SongContext);
 
-    // Debounce or directly set mood to prevent too many unnecessary API hits 
-    // if expression flickers, although useFaceExpression usually handles this.
     useEffect(() => {
         if (!expression || expression === "Loading..." || expression.startsWith("❌")) return;
-
         const moodTag = expressionToMoodTag(expression);
         if (moodTag === currentMood) return;
-
-        const timer = setTimeout(() => {
-            setCurrentMood(moodTag);
-        }, 1500);
-
+        const timer = setTimeout(() => setCurrentMood(moodTag), 1500);
         return () => clearTimeout(timer);
     }, [expression, setCurrentMood, currentMood]);
 
+    const isDetecting = expression && expression !== "Loading..." && !expression.startsWith("❌");
+
     return (
-        <div className="card camera-card" style={{ display: 'flex', flexDirection: 'column' }}>
-            <div className="card-header">
-                <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"></rect><circle cx="12" cy="12" r="3"></circle></svg>
-                <h3>Camera</h3>
-                <div className="status-badge">
-                    <span className="dot"></span> live
-                </div>
+        <div className="dash-panel camera-module">
+            <div className="panel-header">
+                <h3>Face Camera</h3>
+                <span className="panel-badge" style={{ background: 'rgba(0,200,100,0.12)', color: '#4cde9a', borderColor: 'rgba(0,200,100,0.25)' }}>
+                    ● LIVE
+                </span>
             </div>
 
-            <div style={{ flexGrow: 1, backgroundColor: 'transparent', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.1rem', position: 'relative', overflow: 'hidden' }}>
+            <div className="camera-feed">
                 <video
                     ref={videoRef}
                     autoPlay
                     muted
                     playsInline
                     style={{
-                        width: '240px',
-                        height: '240px',
-                        aspectRatio: '1/1',
+                        width: '100%',
+                        height: '100%',
                         objectFit: 'cover',
-                        borderRadius: '50%',
-                        border: '3px solid rgba(255, 101, 163, 0.4)',
-                        marginBottom: '1rem'
+                        borderRadius: 'var(--radius-md)',
                     }}
                 />
+                <div className="camera-overlay" />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.5rem' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(255, 101, 163, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '1rem' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff65a3" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+            <div style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(255,101,163,0.12)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '1px solid rgba(255,101,163,0.25)',
+                    flexShrink: 0,
+                }}>
+                    😊
                 </div>
                 <div>
-                    <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#fff', textTransform: 'capitalize' }}>{expression || "Detecting..."}</h4>
-                    <span style={{ fontSize: '0.85rem', color: '#909090' }}>detected just now</span>
+                    <div style={{ fontSize: '1rem', fontWeight: 600, textTransform: 'capitalize', color: 'var(--on-surface)' }}>
+                        {isDetecting ? expression : 'Detecting…'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--on-surface-muted)' }}>
+                        Current expression
+                    </div>
                 </div>
+                {isDetecting && (
+                    <div className="mood-badge" style={{ marginLeft: 'auto', textTransform: 'capitalize' }}>
+                        🎵 {currentMood}
+                    </div>
+                )}
             </div>
         </div>
     );
