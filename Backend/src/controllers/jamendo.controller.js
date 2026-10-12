@@ -1,3 +1,5 @@
+const cache = require("../config/cache");
+
 const normalizeMood = (rawMood) => {
     const mood = (rawMood || 'happy').toLowerCase().trim();
     const knownTags = [
@@ -8,46 +10,60 @@ const normalizeMood = (rawMood) => {
     return match || 'happy';
 };
 
+const shuffleArray = (array) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+};
+
 exports.streamSongs = async (req, res) => {
     try {
         const mood = normalizeMood(req.query.mood);
-        const clientIds = [process.env.JAMENDO_CLIENT_ID, 'c9cb2a0a', '56d30c95', '042079de', 'b6747d04'].filter(Boolean);
+        const cacheKey = `mood_songs:${mood}`;
 
+        const cached = await cache.get(cacheKey);
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return res.status(200).json(shuffleArray(parsed));
+                }
+            } catch {
+                // fall through to fetch
+            }
+        }
+
+        const clientId = process.env.JAMENDO_CLIENT_ID;
         let data = null;
-        for (const clientId of clientIds) {
-            // Added search=english and vocal filter to fetch English song vibes
+
+        if (clientId) {
             const apiUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=json&limit=15&tags=${mood}&search=english&vocalinstrumental=vocal&include=musicinfo&boost=popularity_month`;
             const response = await fetch(apiUrl);
 
             if (response.ok) {
                 const temp = await response.json();
-                // Check if API returned success and has results
                 if (temp.headers && temp.headers.status === 'success' && temp.results && temp.results.length > 0) {
                     data = temp;
-                    break;
                 }
             }
-        }
 
-        // If strict English search failed, fall back to just the mood without language constraints
-        if (!data || !data.results || data.results.length === 0) {
-            for (const clientId of clientIds) {
-                const apiUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=json&limit=15&tags=${mood}&include=musicinfo&boost=popularity_month`;
-                const response = await fetch(apiUrl);
+            if (!data || !data.results || data.results.length === 0) {
+                const fallbackUrl = `https://api.jamendo.com/v3.0/tracks/?client_id=${clientId}&format=json&limit=15&tags=${mood}&include=musicinfo&boost=popularity_month`;
+                const fallbackResponse = await fetch(fallbackUrl);
 
-                if (response.ok) {
-                    const temp = await response.json();
+                if (fallbackResponse.ok) {
+                    const temp = await fallbackResponse.json();
                     if (temp.headers && temp.headers.status === 'success' && temp.results && temp.results.length > 0) {
                         data = temp;
-                        break;
                     }
                 }
             }
         }
 
-        // If data is still null or data.results is empty after checking all keys, use fallbacks
         if (!data || !data.results || data.results.length === 0) {
-            console.log("Jamendo failed or empty, using fallbacks for mood:", mood);
             const fallbackSongs = [
                 {
                     _id: "fb_" + mood + "_1",
@@ -77,11 +93,12 @@ exports.streamSongs = async (req, res) => {
                     mood: mood
                 }
             ];
-            return res.status(200).json(fallbackSongs);
+
+            await cache.set(cacheKey, JSON.stringify(fallbackSongs), "EX", 15 * 60);
+            return res.status(200).json(shuffleArray(fallbackSongs));
         }
 
         const formattedSongs = data.results.map(track => {
-            // Convert seconds to readable MM:SS
             const min = Math.floor(track.duration / 60);
             const sec = track.duration % 60;
             const durationStr = `${min}:${sec < 10 ? '0' : ''}${sec}`;
@@ -98,9 +115,13 @@ exports.streamSongs = async (req, res) => {
             };
         });
 
-        res.status(200).json(formattedSongs);
+        await cache.set(cacheKey, JSON.stringify(formattedSongs), "EX", 15 * 60);
+        return res.status(200).json(shuffleArray(formattedSongs));
     } catch (error) {
         console.error("Jamendo Fetch Error:", error);
-        res.status(500).json({ message: "Error streaming songs", error: error.message });
+        return res.status(500).json({ error: "Error streaming songs" });
     }
 };
+
+exports.normalizeMood = normalizeMood;
+exports.shuffleArray = shuffleArray;

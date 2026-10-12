@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test",
     "dev": "npx nodemon server.js"
   },
   "keywords": [],
@@ -14,16 +14,18 @@
   "dependencies": {
     "@imagekit/nodejs": "^7.9.1",
     "bcrypt": "^6.0.0",
-    "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
     "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.3",
     "multer": "^2.2.0",
-    "node-id3": "^0.2.9"
+    "node-id3": "^0.2.9",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

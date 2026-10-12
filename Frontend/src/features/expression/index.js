@@ -1,5 +1,3 @@
-export { default as FaceExpression } from "./components/FaceExpression";
-
 export { default as ExpressionBadge } from "./components/ExpressionBadge";
 
 export { default as useFaceExpression } from "./hooks/useFaceExpression";

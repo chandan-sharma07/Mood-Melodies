@@ -30,22 +30,67 @@ if (host) {
     });
 }
 
+const memoryStore = new Map();
+
 const redisClient = {
     async get(key) {
-        if (!client) return null;
-        try {
-            return await client.get(key);
-        } catch {
+        if (client) {
+            try {
+                const val = await client.get(key);
+                if (val !== null && val !== undefined) return val;
+            } catch {
+                // fall through to in-memory store
+            }
+        }
+        const entry = memoryStore.get(key);
+        if (!entry) return null;
+        if (entry.expiry && Date.now() > entry.expiry) {
+            memoryStore.delete(key);
             return null;
         }
+        return entry.value;
     },
     async set(key, value, ...args) {
-        if (!client) return null;
-        try {
-            return await client.set(key, value, ...args);
-        } catch {
-            return null;
+        let ttlMs = null;
+        for (let i = 0; i < args.length; i++) {
+            if (typeof args[i] === "string" && args[i].toUpperCase() === "EX" && typeof args[i + 1] === "number") {
+                ttlMs = args[i + 1] * 1000;
+                break;
+            }
+            if (typeof args[i] === "string" && args[i].toUpperCase() === "PX" && typeof args[i + 1] === "number") {
+                ttlMs = args[i + 1];
+                break;
+            }
+            if (typeof args[i] === "number") {
+                ttlMs = args[i] * 1000;
+                break;
+            }
         }
+
+        memoryStore.set(key, {
+            value,
+            expiry: ttlMs ? Date.now() + ttlMs : null,
+        });
+
+        if (client) {
+            try {
+                return await client.set(key, value, ...args);
+            } catch {
+                return null;
+            }
+        }
+        return "OK";
+    },
+    async del(key) {
+        memoryStore.delete(key);
+        if (client) {
+            try {
+                return await client.del(key);
+            } catch {
+                return null;
+            }
+        }
+        return 1;
     },
 };
 

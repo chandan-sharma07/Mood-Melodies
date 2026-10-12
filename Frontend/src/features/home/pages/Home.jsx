@@ -12,9 +12,6 @@ import SettingsPanel from '../components/SettingsPanel';
 import ListeningHistory from '../components/ListeningHistory';
 import ProfileModal from '../components/ProfileModal';
 
-// Hidden FaceExpression for mood detection side-effect
-import FaceExpression from '../../expression/components/FaceExpression';
-
 const Home = () => {
     const { user, setUser } = useContext(AuthContext);
     const { currentMood } = useContext(SongContext);
@@ -37,11 +34,6 @@ const Home = () => {
 
     return (
         <div className="dashboard-page">
-            {/* Invisible FaceExpression for detection side effects */}
-            <div style={{ display: 'none' }}>
-                <FaceExpression />
-            </div>
-
             {/* ── Top Bar ── */}
             <header className="dash-topbar">
                 <a href="#" className="topbar-logo">

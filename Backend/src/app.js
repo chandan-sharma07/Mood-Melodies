@@ -1,10 +1,15 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 
-app.use(express.json());
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
+app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 
 const allowedOrigins = [
@@ -25,11 +30,29 @@ app.use(cors({
     credentials: true,
 }));
 
+// Rate Limiters
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests, please try again later." },
+});
+
+const restLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many requests, please try again later." },
+});
+
 // Routes
 const authRoutes = require("./routes/auth.routes");
 const songRoutes = require("./routes/song.routes");
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
+app.use(restLimiter);
 app.use("/api/songs", songRoutes);
 
 module.exports = app;
