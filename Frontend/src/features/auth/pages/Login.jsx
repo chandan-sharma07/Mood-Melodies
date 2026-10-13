@@ -22,7 +22,7 @@ const Login = () => {
       navigate("/");
     } catch (err) {
       setError(
-        err?.response?.data?.message || "Login failed. Please try again.",
+        err?.response?.data?.message || err?.response?.data?.error || "Sign in failed. Check your credentials."
       );
     } finally {
       setLoading(false);
@@ -32,14 +32,10 @@ const Login = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        {/* Logo */}
-        <div className="auth-logo">
-          <span className="logo-icon">🎵</span>
-          <span className="logo-text">Mood Melodies</span>
-        </div>
+        <div className="auth-logo">Mood Melodies</div>
 
-        <h1 className="auth-heading">Welcome Back</h1>
-        <p className="auth-subheading">Sign in to continue your mood journey</p>
+        <h1 className="auth-heading">Sign in</h1>
+        <p className="auth-subheading">Enter your details to access your account.</p>
 
         {error && <div className="auth-error">{error}</div>}
 
@@ -49,7 +45,7 @@ const Login = () => {
             <input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -71,13 +67,12 @@ const Login = () => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? <span className="btn-spinner" /> : null}
-            {loading ? "Signing in…" : "Sign In"}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
         <p className="auth-footer">
-          Don't have an account? <Link to="/register">Create one</Link>
+          Need an account? <Link to="/register">Register</Link>
         </p>
       </div>
     </div>

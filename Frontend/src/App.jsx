@@ -1,16 +1,18 @@
-import {RouterProvider} from "react-router-dom";
+import { RouterProvider } from "react-router-dom";
 import router from "./app.router";
+import "./styles/tokens.scss";
 import "./features/shared/styles/global.scss"; 
 import { AuthProvider } from "./features/auth/auth.context";
 import { SongContextProvider } from "./features/home/song.provider";
 
-
 function App() {
-  return <AuthProvider>
-            <SongContextProvider>
-              <RouterProvider router={router} />
-            </SongContextProvider>
-        </AuthProvider>
+  return (
+    <AuthProvider>
+      <SongContextProvider>
+        <RouterProvider router={router} />
+      </SongContextProvider>
+    </AuthProvider>
+  );
 }
 
 export default App;
