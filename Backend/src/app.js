@@ -10,6 +10,7 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 app.use(express.json({ limit: "10kb" }));
+app.use(express.text({ limit: "10kb", type: ["text/plain"] }));
 app.use(cookieParser());
 
 const allowedOrigins = [
@@ -50,9 +51,11 @@ const restLimiter = rateLimit({
 // Routes
 const authRoutes = require("./routes/auth.routes");
 const songRoutes = require("./routes/song.routes");
+const eventRoutes = require("./routes/event.routes");
 
 app.use("/api/auth", authLimiter, authRoutes);
 app.use(restLimiter);
 app.use("/api/songs", songRoutes);
+app.use("/api/events", eventRoutes);
 
 module.exports = app;
