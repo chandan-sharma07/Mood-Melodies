@@ -22,7 +22,9 @@ const Register = () => {
       setUser(data.user);
       navigate("/");
     } catch (err) {
-      setError(err?.response?.data?.message || "Registration failed. Please try again.");
+      setError(
+        err?.response?.data?.message || err?.response?.data?.error || "Registration failed. Please check your inputs."
+      );
     } finally {
       setLoading(false);
     }
@@ -31,14 +33,10 @@ const Register = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        {/* Logo */}
-        <div className="auth-logo">
-          <span className="logo-icon">🎵</span>
-          <span className="logo-text">Mood Melodies</span>
-        </div>
+        <div className="auth-logo">Mood Melodies</div>
 
-        <h1 className="auth-heading">Create Account</h1>
-        <p className="auth-subheading">Join us and let your mood guide the music</p>
+        <h1 className="auth-heading">Create account</h1>
+        <p className="auth-subheading">Enter your details to create an account.</p>
 
         {error && <div className="auth-error">{error}</div>}
 
@@ -48,7 +46,7 @@ const Register = () => {
             <input
               id="username"
               type="text"
-              placeholder="your_username"
+              placeholder="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -61,7 +59,7 @@ const Register = () => {
             <input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -84,14 +82,12 @@ const Register = () => {
           </div>
 
           <button type="submit" className="auth-btn" disabled={loading}>
-            {loading ? <span className="btn-spinner" /> : null}
-            {loading ? "Creating account…" : "Create Account"}
+            {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
         <p className="auth-footer">
-          Already have an account?{" "}
-          <Link to="/login">Sign in</Link>
+          Already have an account? <Link to="/login">Sign in</Link>
         </p>
       </div>
     </div>

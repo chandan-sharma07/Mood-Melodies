@@ -1,0 +1,84 @@
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --border: #e3e1d9;
+  --text: #1d1d1b;
+  --text-muted: #6a6962;
+  --accent: #2f6f5e;
+  --accent-contrast: #ffffff;
+  --danger: #b3261e;
+
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-xs: 13px;
+  --font-sm: 14px;
+  --font-base: 16px;
+  --font-lg: 20px;
+  --font-xl: 28px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+
+  --radius: 6px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Mood indicator square colors */
+  --mood-happy: #2f6f5e;
+  --mood-sad: #3b6285;
+  --mood-angry: #9c3b36;
+  --mood-chill: #57577e;
+  --mood-uplifting: #96612b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141413;
+    --surface: #1b1b19;
+    --border: #2d2d2a;
+    --text: #ecebe5;
+    --text-muted: #9b9a91;
+    --accent: #6bb89f;
+    --accent-contrast: #10201a;
+    --danger: #e57368;
+
+    --mood-happy: #6bb89f;
+    --mood-sad: #6ca0cc;
+    --mood-angry: #e57368;
+    --mood-chill: #8a8ab5;
+    --mood-uplifting: #d99a5e;
+  }
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-sm);
+  font-weight: var(--weight-regular);
+  color: var(--text);
+  background-color: var(--bg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}

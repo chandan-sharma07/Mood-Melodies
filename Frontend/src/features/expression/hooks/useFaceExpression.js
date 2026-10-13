@@ -7,7 +7,7 @@ import {
   detectExpression,
 } from "../services/detector";
 
-const useFaceExpression = () => {
+const useFaceExpression = (enabled = true) => {
   const videoRef = useRef(null);
   const animationRef = useRef(null);
   const lastSampleRef = useRef(0);
@@ -15,6 +15,11 @@ const useFaceExpression = () => {
   const [expression, setExpression] = useState("Loading...");
 
   useEffect(() => {
+    if (!enabled) {
+      setExpression("Camera disabled");
+      return;
+    }
+
     let stream = null;
 
     const run = async () => {
@@ -43,7 +48,7 @@ const useFaceExpression = () => {
         animationRef.current = requestAnimationFrame(detect);
       } catch (error) {
         console.error(error);
-        setExpression("❌ Camera Error");
+        setExpression("Camera error");
       }
     };
 
@@ -56,7 +61,7 @@ const useFaceExpression = () => {
 
       stopWebcam(stream);
     };
-  }, []);
+  }, [enabled]);
 
   return {
     videoRef,

@@ -67,6 +67,42 @@ export const SongContextProvider = ({ children }) => {
   const [listeningHistory, setListeningHistory] = useState([]);
   const [sensitivity, setSensitivity] = useState(60);
 
+  const defaultTz =
+    typeof Intl !== "undefined" && Intl.DateTimeFormat
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+      : "UTC";
+
+  const [cameraEnabled, setCameraEnabledState] = useState(() => {
+    try {
+      const saved = localStorage.getItem("mm_camera_enabled");
+      return saved !== null ? saved === "true" : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const [timezone, setTimezoneState] = useState(() => {
+    try {
+      return localStorage.getItem("mm_timezone") || defaultTz;
+    } catch {
+      return defaultTz;
+    }
+  });
+
+  const setCameraEnabled = useCallback((val) => {
+    setCameraEnabledState(val);
+    try {
+      localStorage.setItem("mm_camera_enabled", String(val));
+    } catch {}
+  }, []);
+
+  const setTimezone = useCallback((tz) => {
+    setTimezoneState(tz);
+    try {
+      localStorage.setItem("mm_timezone", tz);
+    } catch {}
+  }, []);
+
   const moodEngineRef = useRef(
     new MoodEngine({ sensitivity: 60, initialMood: "happy" })
   );
@@ -343,6 +379,10 @@ export const SongContextProvider = ({ children }) => {
         listeningHistory,
         sensitivity,
         setSensitivity,
+        cameraEnabled,
+        setCameraEnabled,
+        timezone,
+        setTimezone,
       }}
     >
       {children}

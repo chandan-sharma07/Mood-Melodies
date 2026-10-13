@@ -59,11 +59,11 @@ export const EXPRESSION_MOOD_MAP = {
 };
 
 export const EXPRESSION_DISPLAY = {
-  happy: "😊 Happy",
-  surprised: "😲 Surprised",
-  sad: "😢 Sad",
-  angry: "😠 Angry",
-  neutral: "😐 Neutral",
+  happy: "Happy",
+  surprised: "Surprised",
+  sad: "Sad",
+  angry: "Angry",
+  neutral: "Neutral",
   no_face: "No face in frame",
 };
 
