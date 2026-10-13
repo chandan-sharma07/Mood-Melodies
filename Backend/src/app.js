@@ -52,10 +52,12 @@ const restLimiter = rateLimit({
 const authRoutes = require("./routes/auth.routes");
 const songRoutes = require("./routes/song.routes");
 const eventRoutes = require("./routes/event.routes");
+const analyticsRoutes = require("./routes/analytics.routes");
 
 app.use("/api/auth", authLimiter, authRoutes);
 app.use(restLimiter);
 app.use("/api/songs", songRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 module.exports = app;
