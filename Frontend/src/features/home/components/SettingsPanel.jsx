@@ -1,14 +1,20 @@
 import React, { useContext } from 'react';
 import { SongContext } from '../song.context';
+import { getWindowSize, getCooldownSeconds } from '../../expression/utils/moodEngine';
 
 const SettingsPanel = () => {
     const {
         autoplayEnabled, setAutoplayEnabled,
         sensitivity, setSensitivity,
-        currentMood, setCurrentMood,
+        currentMood, manualSetMood, setCurrentMood,
     } = useContext(SongContext);
 
-    const moods = ['happy', 'sad', 'energetic', 'chill', 'romantic', 'angry', 'relaxing', 'dreamy'];
+    // Only these 5 valid mood tags map to expressions
+    const moods = ['happy', 'sad', 'angry', 'chill', 'uplifting'];
+
+    const setMoodHandler = manualSetMood || setCurrentMood;
+    const windowSize = getWindowSize(sensitivity);
+    const cooldownSec = getCooldownSeconds(sensitivity);
 
     return (
         <div className="dash-panel settings-panel">
@@ -31,19 +37,25 @@ const SettingsPanel = () => {
             </div>
 
             {/* Sensitivity */}
-            <div className="settings-row">
-                <div>
-                    <div className="settings-label">Detection Sensitivity</div>
-                    <div className="settings-sub">{sensitivity}%</div>
+            <div className="settings-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                    <div>
+                        <div className="settings-label">Detection Sensitivity</div>
+                        <div className="settings-sub">{sensitivity}%</div>
+                    </div>
+                    <input
+                        type="range"
+                        className="sens-slider"
+                        min="10"
+                        max="100"
+                        value={sensitivity}
+                        onChange={(e) => setSensitivity(Number(e.target.value))}
+                        style={{ width: '130px' }}
+                    />
                 </div>
-                <input
-                    type="range"
-                    className="sens-slider"
-                    min="10"
-                    max="100"
-                    value={sensitivity}
-                    onChange={(e) => setSensitivity(Number(e.target.value))}
-                />
+                <div className="settings-sub" style={{ fontSize: '0.75rem', color: 'var(--on-surface-muted)', lineHeight: 1.4 }}>
+                    Higher sensitivity means a shorter sample window ({windowSize} samples) and shorter cooldown ({cooldownSec}s).
+                </div>
             </div>
 
             {/* Manual mood override */}
@@ -53,7 +65,7 @@ const SettingsPanel = () => {
                     {moods.map(m => (
                         <button
                             key={m}
-                            onClick={() => setCurrentMood(m)}
+                            onClick={() => setMoodHandler(m)}
                             style={{
                                 padding: '4px 12px',
                                 borderRadius: '9999px',

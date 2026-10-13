@@ -155,16 +155,19 @@ const getMe = async (req, res) => {
 
 const logMood = async (req, res) => {
   try {
-    const { mood } = req.body;
-    if (!mood) return res.status(400).json({ message: "Mood is required" });
+    const { mood, source } = req.body;
+    if (!mood || mood === "no_face") {
+      return res.status(400).json({ error: "Valid mood is required" });
+    }
 
     const user = await userModels.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-    user.moodHistory.push({ mood, timestamp: new Date() });
+    const validSource = source === "manual" ? "manual" : "camera";
+    user.moodHistory.push({ mood, source: validSource, timestamp: new Date() });
 
     const moodCounts = {};
-    let maxMood = user.favoriteMood || "Neutral";
+    let maxMood = user.favoriteMood || "neutral";
     let maxCount = 0;
     user.moodHistory.forEach((h) => {
       moodCounts[h.mood] = (moodCounts[h.mood] || 0) + 1;
@@ -179,7 +182,7 @@ const logMood = async (req, res) => {
     res.status(200).json({ success: true, user: sanitizeUser(user) });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Error logging mood" });
+    res.status(500).json({ error: "Error logging mood" });
   }
 };
 

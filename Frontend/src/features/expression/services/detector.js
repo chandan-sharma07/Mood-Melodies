@@ -50,7 +50,7 @@ export const detectExpression = (
     !results.faceBlendshapes ||
     results.faceBlendshapes.length === 0
   ) {
-    setExpression("😐 No Face");
+    setExpression("no_face");
     return;
   }
 

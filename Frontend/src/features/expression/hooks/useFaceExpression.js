@@ -10,6 +10,7 @@ import {
 const useFaceExpression = () => {
   const videoRef = useRef(null);
   const animationRef = useRef(null);
+  const lastSampleRef = useRef(0);
 
   const [expression, setExpression] = useState("Loading...");
 
@@ -24,18 +25,22 @@ const useFaceExpression = () => {
         // 2. Initialize MediaPipe
         await initializeDetector();
 
-        // 3. Detection Loop
-        const detect = () => {
-          detectExpression(
-            videoRef.current,
-            setExpression
-          );
+        // 3. Detection Loop (~5 fps / ~200ms)
+        const SAMPLE_INTERVAL_MS = 200;
+        const detect = (timestamp) => {
+          if (!lastSampleRef.current || timestamp - lastSampleRef.current >= SAMPLE_INTERVAL_MS) {
+            lastSampleRef.current = timestamp;
+            detectExpression(
+              videoRef.current,
+              setExpression
+            );
+          }
 
           animationRef.current =
             requestAnimationFrame(detect);
         };
 
-        detect();
+        animationRef.current = requestAnimationFrame(detect);
       } catch (error) {
         console.error(error);
         setExpression("❌ Camera Error");

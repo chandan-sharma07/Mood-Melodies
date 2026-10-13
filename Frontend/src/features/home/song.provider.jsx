@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { SongContext } from "./song.context.js";
+import { MoodEngine } from "../expression/utils/moodEngine.js";
 
 const API_BASE =
   import.meta.env.VITE_API_URL || "https://mood-melodies-backend.onrender.com";
@@ -11,19 +12,74 @@ export const SongContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [currentMood, setCurrentMood] = useState("happy");
+  const [currentMood, setCurrentMoodState] = useState("happy");
 
-  // New states for Settings and History
+  // States for Settings and History
   const [autoplayEnabled, setAutoplayEnabled] = useState(true);
-  const [moodHistory, setMoodHistory] = useState([
-    { mood: "happy", time: new Date() },
-  ]);
+  const [moodHistory, setMoodHistory] = useState([]);
   const [listeningHistory, setListeningHistory] = useState([]);
   const [sensitivity, setSensitivity] = useState(60);
 
-  const lastMoodRef = useRef(null);
+  const moodEngineRef = useRef(
+    new MoodEngine({ sensitivity: 60, initialMood: "happy" })
+  );
   const lastSongIdRef = useRef(null);
 
+  // Sync sensitivity into moodEngine
+  useEffect(() => {
+    moodEngineRef.current.setSensitivity(sensitivity);
+  }, [sensitivity]);
+
+  // Apply mood change and log it to backend (never on page load)
+  const applyMoodChange = useCallback((newMood, source = "camera") => {
+    if (!newMood) return;
+    setCurrentMoodState((prevMood) => {
+      if (prevMood === newMood) return prevMood;
+
+      // Persist mood to backend with source
+      axios
+        .post(
+          `${API_BASE}/api/auth/log-mood`,
+          { mood: newMood, source },
+          { withCredentials: true },
+        )
+        .catch((err) => console.error("Error logging mood:", err));
+
+      setMoodHistory((prev) =>
+        [{ mood: newMood, source, time: new Date() }, ...prev].slice(0, 7)
+      );
+
+      return newMood;
+    });
+  }, []);
+
+  // Process sample from camera (~5 fps)
+  const processFaceDetection = useCallback(
+    (label) => {
+      const result = moodEngineRef.current.processSample(label);
+      if (result.changed) {
+        applyMoodChange(result.mood, "camera");
+      }
+      return result;
+    },
+    [applyMoodChange]
+  );
+
+  // Manual override (bypasses cooldown)
+  const manualSetMood = useCallback(
+    (mood) => {
+      const result = moodEngineRef.current.manualOverride(mood);
+      if (result.changed) {
+        applyMoodChange(result.mood, "manual");
+      }
+    },
+    [applyMoodChange]
+  );
+
+  // Expose setCurrentMood as manual override for compatibility
+  const setCurrentMood = manualSetMood;
+
+  // Fetch playlist for current mood (runs on mount and on mood changes; DOES NOT log mood)
   useEffect(() => {
     const fetchSongs = async () => {
       setError(null);
@@ -58,25 +114,6 @@ export const SongContextProvider = ({ children }) => {
     };
 
     fetchSongs();
-
-    // Track Mood History
-    if (lastMoodRef.current !== currentMood) {
-      lastMoodRef.current = currentMood;
-
-      // Call backend to persist mood
-      axios
-        .post(
-          `${API_BASE}/api/auth/log-mood`,
-          { mood: currentMood },
-          { withCredentials: true },
-        )
-        .catch((err) => console.error("Error logging mood:", err));
-
-      setMoodHistory((prev) => {
-        const newHistory = [...prev, { mood: currentMood, time: new Date() }];
-        return newHistory.slice(-7); // Keep last 7 moods
-      });
-    }
   }, [currentMood]);
 
   // Track Listening History
@@ -84,7 +121,6 @@ export const SongContextProvider = ({ children }) => {
     if (currentSong && lastSongIdRef.current !== currentSong._id) {
       lastSongIdRef.current = currentSong._id;
 
-      // Call backend to increment song count
       axios
         .post(
           `${API_BASE}/api/auth/log-song`,
@@ -94,7 +130,7 @@ export const SongContextProvider = ({ children }) => {
         .catch((err) => console.error("Error logging song:", err));
 
       setListeningHistory((prev) =>
-        [{ song: currentSong, time: new Date() }, ...prev].slice(0, 5), // Keep last 5 songs
+        [{ song: currentSong, time: new Date() }, ...prev].slice(0, 5),
       );
     }
   }, [currentSong]);
@@ -135,6 +171,8 @@ export const SongContextProvider = ({ children }) => {
         playNext,
         playPrev,
         setCurrentMood,
+        manualSetMood,
+        processFaceDetection,
         currentMood,
         autoplayEnabled,
         setAutoplayEnabled,

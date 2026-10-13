@@ -31,50 +31,40 @@ export const getExpression = (blendShapes) => {
       getScore(blendShapes, "browDownRight")) / 2;
 
   // -------- Expressions --------
-
   if (smile > THRESHOLD.SMILE) {
-    return "😊 Happy";
+    return "happy";
   }
 
-  if (
-    mouthOpen > THRESHOLD.MOUTH_OPEN &&
-    browUp > THRESHOLD.BROW_UP
-  ) {
-    return "😲 Surprise";
-  }
-
-  if (mouthOpen > THRESHOLD.MOUTH_OPEN) {
-    return "😮 Mouth Open";
-  }
-
-  if (blink > THRESHOLD.BLINK) {
-    return "😉 Blink";
-  }
-
-  if (pucker > THRESHOLD.PUCKER) {
-    return "😘 Kiss";
+  if (mouthOpen > THRESHOLD.MOUTH_OPEN && browUp > THRESHOLD.BROW_UP) {
+    return "surprised";
   }
 
   if (frown > 0.25) {
-    return "😢 Sad";
+    return "sad";
   }
 
   if (browDown > 0.30) {
-    return "😠 Angry";
+    return "angry";
   }
 
-  return "😐 Neutral";
+  return "neutral";
 };
 
 export const EXPRESSION_MOOD_MAP = {
-  "😊 Happy": "happy",
-  "😢 Sad": "sad",
-  "😠 Angry": "angry",
-  "😲 Surprise": "uplifting",
-  "😮 Mouth Open": "energetic",
-  "😉 Blink": "playful",
-  "😘 Kiss": "romantic",
-  "😐 Neutral": "chill",
+  happy: "happy",
+  surprised: "uplifting",
+  sad: "sad",
+  angry: "angry",
+  neutral: "chill",
+};
+
+export const EXPRESSION_DISPLAY = {
+  happy: "😊 Happy",
+  surprised: "😲 Surprised",
+  sad: "😢 Sad",
+  angry: "😠 Angry",
+  neutral: "😐 Neutral",
+  no_face: "No face in frame",
 };
 
 export const expressionToMoodTag = (expression) => {

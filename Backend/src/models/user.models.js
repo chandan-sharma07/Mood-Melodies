@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema({
     moodHistory: [
         {
             mood: { type: String, required: true },
+            source: { type: String, enum: ["camera", "manual"], default: "camera" },
             timestamp: { type: Date, default: Date.now }
         }
     ]
