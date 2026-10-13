@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { SongContext } from '../song.context';
 
 const PlayerCard = () => {
-    const { currentSong, loading, playNext, playPrev, songs } = useContext(SongContext);
+    const { currentSong, loading, playNext, playPrev, songs, updatePlaybackTime } = useContext(SongContext);
 
     // ── Audio Ref (persistent across renders) ──
     const audioRef = useRef(new Audio());
@@ -23,18 +23,27 @@ const PlayerCard = () => {
         audio.volume = volume;
 
         const onLoaded = () => {
-            setDuration(audio.duration || 0);
+            const dur = audio.duration || 0;
+            setDuration(dur);
             setCurrentTime(0);
+            if (updatePlaybackTime) {
+                updatePlaybackTime(0, dur);
+            }
             // Autoplay new song
             audio.play().catch(() => {});
             setPlaying(true);
         };
 
-        const onTimeUpdate = () => setCurrentTime(audio.currentTime);
+        const onTimeUpdate = () => {
+            setCurrentTime(audio.currentTime);
+            if (updatePlaybackTime) {
+                updatePlaybackTime(audio.currentTime, audio.duration || duration);
+            }
+        };
 
         const onEnded = () => {
             setPlaying(false);
-            playNext(); // auto next song
+            playNext("completed"); // naturally completed song
         };
 
         const onError = () => setPlaying(false);
@@ -88,14 +97,14 @@ const PlayerCard = () => {
         audioRef.current.pause();
         setPlaying(false);
         setCurrentTime(0);
-        playPrev();
+        playPrev("prev");
     };
 
     const handleNext = () => {
         audioRef.current.pause();
         setPlaying(false);
         setCurrentTime(0);
-        playNext();
+        playNext("next");
     };
 
     // ── Seek ──

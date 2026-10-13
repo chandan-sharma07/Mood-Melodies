@@ -1,4 +1,6 @@
 const userModels = require("../models/user.models");
+const MoodEvent = require("../models/moodEvent.model");
+const PlayEvent = require("../models/playEvent.model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const blacklistModel = require("../models/blacklist.model");
@@ -138,66 +140,42 @@ const getMe = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found" });
-    }
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "User fetched successfully",
-        user: sanitizeUser(user),
-      });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Error fetching user" });
-  }
-};
-
-const logMood = async (req, res) => {
-  try {
-    const { mood, source } = req.body;
-    if (!mood || mood === "no_face") {
-      return res.status(400).json({ error: "Valid mood is required" });
+        .json({ success: false, error: "User not found" });
     }
 
-    const user = await userModels.findById(req.user.id);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    const [totalSongsPlayed, moodAgg, recentMoods] = await Promise.all([
+      PlayEvent.countDocuments({ user: user._id }),
+      MoodEvent.aggregate([
+        { $match: { user: user._id } },
+        { $group: { _id: "$mood", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 1 },
+      ]),
+      MoodEvent.find({ user: user._id })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .lean(),
+    ]);
 
-    const validSource = source === "manual" ? "manual" : "camera";
-    user.moodHistory.push({ mood, source: validSource, timestamp: new Date() });
+    const favoriteMood = moodAgg.length > 0 ? moodAgg[0]._id : "neutral";
 
-    const moodCounts = {};
-    let maxMood = user.favoriteMood || "neutral";
-    let maxCount = 0;
-    user.moodHistory.forEach((h) => {
-      moodCounts[h.mood] = (moodCounts[h.mood] || 0) + 1;
-      if (moodCounts[h.mood] > maxCount) {
-        maxCount = moodCounts[h.mood];
-        maxMood = h.mood;
-      }
+    const safeUser = sanitizeUser(user);
+    safeUser.totalSongsPlayed = totalSongsPlayed;
+    safeUser.favoriteMood = favoriteMood;
+    safeUser.moodHistory = recentMoods.map((m) => ({
+      mood: m.mood,
+      source: m.source,
+      timestamp: m.createdAt,
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: "User fetched successfully",
+      user: safeUser,
     });
-    user.favoriteMood = maxMood;
-
-    await user.save();
-    res.status(200).json({ success: true, user: sanitizeUser(user) });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Error logging mood" });
-  }
-};
-
-const logSong = async (req, res) => {
-  try {
-    const user = await userModels.findById(req.user.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    user.totalSongsPlayed = (user.totalSongsPlayed || 0) + 1;
-    await user.save();
-
-    res.status(200).json({ success: true, user: sanitizeUser(user) });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Error logging song" });
+  } catch (error) {
+    console.error("getMe error:", error);
+    res.status(500).json({ success: false, error: "Error fetching user" });
   }
 };
 
@@ -213,7 +191,7 @@ const getRecommendedArtists = async (req, res) => {
     res.status(200).json({ success: true, artists });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Error fetching artists" });
+    res.status(500).json({ error: "Error fetching artists" });
   }
 };
 
@@ -222,7 +200,5 @@ module.exports = {
   loginUser,
   logoutUser,
   getMe,
-  logMood,
-  logSong,
   getRecommendedArtists,
 };
