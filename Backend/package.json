@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test",
-    "dev": "npx nodemon server.js"
+    "dev": "npx nodemon server.js",
+    "seed:demo": "node scripts/seed-demo-data.js",
+    "migrate:moods": "node scripts/migrate-mood-history.js"
   },
   "keywords": [],
   "author": "",
