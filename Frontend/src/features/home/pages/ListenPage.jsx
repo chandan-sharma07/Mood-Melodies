@@ -46,22 +46,19 @@ const ListenPage = () => {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: "var(--space-5)",
-        flexWrap: "wrap",
-        alignItems: "flex-start",
-      }}
-    >
+    <div className="listen-layout">
       {/* Left / Main column: Player and Queue */}
-      <div style={{ flex: 1, minWidth: "280px" }}>
-        <PlayerView />
-        <QueueTable />
+      <div className="listen-main-col">
+        <div style={{ flexShrink: 0 }}>
+          <PlayerView />
+        </div>
+        <div className="listen-queue-wrapper">
+          <QueueTable />
+        </div>
       </div>
 
-      {/* Right column: 260px Camera and mood controls */}
-      <div>
+      {/* Right column: Camera and mood controls */}
+      <div className="listen-camera-col">
         <CameraColumn />
       </div>
     </div>

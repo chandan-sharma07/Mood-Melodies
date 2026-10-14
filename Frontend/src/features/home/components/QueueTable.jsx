@@ -25,7 +25,11 @@ const QueueTable = () => {
   return (
     <div
       style={{
-        marginTop: "var(--space-4)",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        maxHeight: "100%",
+        minHeight: 0,
         backgroundColor: "var(--surface)",
         border: "1px solid var(--border)",
         borderRadius: "var(--radius)",
@@ -39,12 +43,22 @@ const QueueTable = () => {
           fontSize: "var(--font-sm)",
           fontWeight: "var(--weight-medium)",
           color: "var(--text)",
+          flexShrink: 0,
         }}
       >
         Queue ({songs.length} tracks)
       </div>
 
-      <div style={{ overflowX: "auto" }}>
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          overflowX: "hidden",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
+      >
         <table
           style={{
             width: "100%",
@@ -53,7 +67,14 @@ const QueueTable = () => {
             fontSize: "var(--font-sm)",
           }}
         >
-          <thead>
+          <thead
+            style={{
+              position: "sticky",
+              top: 0,
+              backgroundColor: "var(--surface)",
+              zIndex: 1,
+            }}
+          >
             <tr
               style={{
                 borderBottom: "1px solid var(--border)",

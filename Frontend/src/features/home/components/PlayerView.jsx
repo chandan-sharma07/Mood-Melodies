@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
-import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
+import React, { useContext } from "react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { SongContext } from "../song.context";
 import TrackCover from "../../shared/components/TrackCover";
 
@@ -8,119 +8,51 @@ const PlayerView = () => {
     currentSong,
     loading,
     error,
+    playing,
+    currentTime,
+    duration,
+    volume,
+    muted,
+    playbackError,
+    togglePlay,
+    seekTo,
+    setVolume,
+    toggleMute,
     playNext,
     playPrev,
-    updatePlaybackTime,
   } = useContext(SongContext);
 
-  const audioRef = useRef(new Audio());
-  const [playing, setPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!currentSong?.url) return;
-
-    audio.pause();
-    audio.src = currentSong.url;
-
-    const onLoaded = () => {
-      const dur = audio.duration || 0;
-      setDuration(dur);
-      setCurrentTime(0);
-      if (updatePlaybackTime) {
-        updatePlaybackTime(0, dur);
-      }
-      audio.play().catch(() => {});
-      setPlaying(true);
-    };
-
-    const onTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-      if (updatePlaybackTime) {
-        updatePlaybackTime(audio.currentTime, audio.duration || duration);
-      }
-    };
-
-    const onEnded = () => {
-      setPlaying(false);
-      playNext("completed");
-    };
-
-    const onError = () => setPlaying(false);
-
-    audio.addEventListener("loadedmetadata", onLoaded);
-    audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("ended", onEnded);
-    audio.addEventListener("error", onError);
-
-    audio.load();
-
-    return () => {
-      audio.removeEventListener("loadedmetadata", onLoaded);
-      audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("ended", onEnded);
-      audio.removeEventListener("error", onError);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSong?._id]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    return () => {
-      audio.pause();
-      audio.src = "";
-    };
-  }, []);
-
-  const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!currentSong?.url) return;
-    if (audio.paused) {
-      if (!audio.src || audio.src === window.location.href) {
-        audio.src = currentSong.url;
-        audio.load();
-      }
-      audio.play().catch(() => {});
-      setPlaying(true);
-    } else {
-      audio.pause();
-      setPlaying(false);
-    }
-  };
-
   const handlePrev = () => {
-    audioRef.current.pause();
-    setPlaying(false);
-    setCurrentTime(0);
     playPrev("prev");
   };
 
   const handleNext = () => {
-    audioRef.current.pause();
-    setPlaying(false);
-    setCurrentTime(0);
     playNext("next");
   };
 
   const handleSeek = (e) => {
-    const audio = audioRef.current;
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const seekTime = ratio * (duration || 0);
-    audio.currentTime = seekTime;
-    setCurrentTime(seekTime);
+    const totalDuration = duration > 0 ? duration : 0;
+    if (totalDuration > 0) {
+      seekTo(ratio * totalDuration);
+    }
+  };
+
+  const handleVolumeChange = (e) => {
+    const val = parseFloat(e.target.value);
+    setVolume(val);
   };
 
   const fmt = (s) => {
-    if (!s || isNaN(s)) return "0:00";
+    if (!s || isNaN(s) || s < 0) return "0:00";
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
     return `${m}:${sec < 10 ? "0" : ""}${sec}`;
   };
 
-  const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const displayDuration = duration > 0 ? duration : 0;
+  const progressPct = displayDuration > 0 ? (currentTime / displayDuration) * 100 : 0;
 
   if (loading) {
     return null; // Handled by page container loading state
@@ -144,22 +76,12 @@ const PlayerView = () => {
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        gap: "var(--space-4)",
-        backgroundColor: "var(--surface)",
-        border: "1px solid var(--border)",
-        borderRadius: "var(--radius)",
-        padding: "var(--space-4)",
-        alignItems: "center",
-        flexWrap: "wrap",
-      }}
-    >
-      <TrackCover src={currentSong.posterUrl} title={currentSong.title} size={144} />
+    <div className="player-view-card">
+      <div className="player-view-cover-wrapper">
+        <TrackCover src={currentSong.posterUrl} title={currentSong.title} size={144} />
+      </div>
 
-      <div style={{ flex: 1, minWidth: "200px" }}>
+      <div className="player-view-details">
         <div
           style={{
             fontSize: "var(--font-base)",
@@ -199,6 +121,7 @@ const PlayerView = () => {
                 height: "100%",
                 backgroundColor: "var(--accent)",
                 borderRadius: "2px",
+                transition: "width 0.1s linear",
               }}
             />
           </div>
@@ -212,69 +135,129 @@ const PlayerView = () => {
             }}
           >
             <span>{fmt(currentTime)}</span>
-            <span>{fmt(duration)}</span>
+            <span>{duration > 0 ? fmt(duration) : (currentSong.durationStr || "0:00")}</span>
           </div>
         </div>
 
-        {/* Controls */}
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-          <button
-            type="button"
-            onClick={handlePrev}
-            aria-label="Previous track"
-            style={{
-              background: "none",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius)",
-              padding: "var(--space-2)",
-              cursor: "pointer",
-              color: "var(--text)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <SkipBack size={16} strokeWidth={1.5} />
-          </button>
+        {/* Playback Controls & Volume */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: "var(--space-2)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+            <button
+              type="button"
+              onClick={handlePrev}
+              aria-label="Previous track"
+              style={{
+                background: "none",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius)",
+                padding: "var(--space-2)",
+                cursor: "pointer",
+                color: "var(--text)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <SkipBack size={16} strokeWidth={1.5} />
+            </button>
 
-          <button
-            type="button"
-            onClick={togglePlay}
-            aria-label={playing ? "Pause" : "Play"}
-            style={{
-              background: "var(--accent)",
-              border: "1px solid var(--accent)",
-              borderRadius: "var(--radius)",
-              padding: "var(--space-2) var(--space-3)",
-              cursor: "pointer",
-              color: "var(--accent-contrast)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {playing ? <Pause size={16} strokeWidth={1.5} /> : <Play size={16} strokeWidth={1.5} />}
-          </button>
+            <button
+              type="button"
+              onClick={togglePlay}
+              aria-label={playing ? "Pause" : "Play"}
+              style={{
+                background: "var(--accent)",
+                border: "1px solid var(--accent)",
+                borderRadius: "var(--radius)",
+                padding: "var(--space-2) var(--space-3)",
+                cursor: "pointer",
+                color: "var(--accent-contrast)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {playing ? <Pause size={16} strokeWidth={1.5} /> : <Play size={16} strokeWidth={1.5} />}
+            </button>
 
-          <button
-            type="button"
-            onClick={handleNext}
-            aria-label="Next track"
-            style={{
-              background: "none",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius)",
-              padding: "var(--space-2)",
-              cursor: "pointer",
-              color: "var(--text)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <SkipForward size={16} strokeWidth={1.5} />
-          </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              aria-label="Next track"
+              style={{
+                background: "none",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius)",
+                padding: "var(--space-2)",
+                cursor: "pointer",
+                color: "var(--text)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <SkipForward size={16} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          {/* Volume Control */}
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+            <button
+              type="button"
+              onClick={toggleMute}
+              aria-label={muted || volume === 0 ? "Unmute" : "Mute"}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--text-muted)",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                padding: "4px",
+              }}
+            >
+              {muted || volume === 0 ? (
+                <VolumeX size={16} strokeWidth={1.5} />
+              ) : (
+                <Volume2 size={16} strokeWidth={1.5} />
+              )}
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={muted ? 0 : volume}
+              onChange={handleVolumeChange}
+              aria-label="Volume"
+              style={{
+                width: "60px",
+                accentColor: "var(--accent)",
+                cursor: "pointer",
+              }}
+            />
+          </div>
         </div>
+
+        {playbackError && (
+          <div
+            style={{
+              fontSize: "var(--font-xs)",
+              color: "var(--text-muted)",
+              marginTop: "var(--space-2)",
+            }}
+          >
+            {playbackError}
+          </div>
+        )}
       </div>
     </div>
   );

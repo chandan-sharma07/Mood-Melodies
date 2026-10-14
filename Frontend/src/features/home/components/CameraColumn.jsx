@@ -35,15 +35,7 @@ const CameraColumn = () => {
   const supportedMoods = ["happy", "sad", "angry", "chill", "uplifting"];
 
   return (
-    <div
-      style={{
-        width: "260px",
-        minWidth: "260px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "var(--space-3)",
-      }}
-    >
+    <div className="camera-column-card">
       {/* Camera Preview Card */}
       <div
         style={{
