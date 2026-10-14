@@ -6,6 +6,8 @@ const rateLimit = require("express-rate-limit");
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
@@ -13,8 +15,12 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.text({ limit: "10kb", type: ["text/plain"] }));
 app.use(cookieParser());
 
+const configuredClientUrl = process.env.CLIENT_URL
+    ? process.env.CLIENT_URL.trim().replace(/\/+$/, "")
+    : null;
+
 const allowedOrigins = [
-    process.env.CLIENT_URL,
+    configuredClientUrl,
     "https://mood-melodies-pi.vercel.app",
     "http://localhost:5173",
     "http://localhost:5174",
@@ -23,9 +29,13 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (e.g. Postman, server-to-server)
+        // Allow requests with no origin (e.g. Postman, curl, server-to-server)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
+        const normalized = origin.trim().replace(/\/+$/, "");
+        const isAllowed =
+            allowedOrigins.includes(normalized) ||
+            /^https:\/\/([a-z0-9-]+)\.vercel\.app$/.test(normalized);
+        if (isAllowed) return callback(null, true);
         return callback(new Error(`CORS: origin ${origin} not allowed`));
     },
     credentials: true,

@@ -28,11 +28,11 @@
   --space-6: 32px;
 
   /* Mood indicator square colors */
-  --mood-happy: #2f6f5e;
-  --mood-sad: #3b6285;
-  --mood-angry: #9c3b36;
-  --mood-chill: #57577e;
-  --mood-uplifting: #96612b;
+  --mood-happy: #c58b1f;
+  --mood-sad: #3f6fa6;
+  --mood-angry: #b24a3a;
+  --mood-chill: #8a8982;
+  --mood-uplifting: #7a62a8;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -46,11 +46,11 @@
     --accent-contrast: #10201a;
     --danger: #e57368;
 
-    --mood-happy: #6bb89f;
-    --mood-sad: #6ca0cc;
-    --mood-angry: #e57368;
-    --mood-chill: #8a8ab5;
-    --mood-uplifting: #d99a5e;
+    --mood-happy: #c58b1f;
+    --mood-sad: #3f6fa6;
+    --mood-angry: #b24a3a;
+    --mood-chill: #8a8982;
+    --mood-uplifting: #7a62a8;
   }
 }
 
